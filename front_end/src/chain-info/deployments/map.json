@@ -1,0 +1,18 @@
+{
+  "4": {
+    "MerkleProofCollectible": [
+      "0x762fEf979d1eABc9D081C2c1b6797BBfB946f915"
+    ]
+  },
+  "42": {
+    "DappToken": [
+      "0x0e274c5F26170cb69abe3BB60ED71A00d3CF54aD"
+    ],
+    "MerkleProofCollectible": [
+      "0x2b7E8bAe21Ee7B9405dCA0A3E1Fa0223A8aE58f3"
+    ],
+    "TokenFarm": [
+      "0x4e547751Fbb12bB8F912e57C52E50B43fec74E76"
+    ]
+  }
+}
