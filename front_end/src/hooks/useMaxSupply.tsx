@@ -27,5 +27,5 @@ export const useMaxSupply = () => {
         return error
     }
 
-    return value?.[0] ? value?.[0] : 0
+    return value?.[0] ? value?.[0].toNumber() : 0
 }

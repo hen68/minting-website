@@ -9,7 +9,7 @@ import brownieConfig from "../brownie-config.json"
 import dapp from "../dapp.png"
 import eth from "../eth.png"
 import dai from "../dai.png"
-import { YourWallet } from "./yourWallet/YourWallet"
+import { YourWallet } from "./mint/MintForm"
 import { makeStyles } from "@material-ui/core"
 
 const useStyles = makeStyles((theme) => ({

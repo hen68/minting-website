@@ -19,7 +19,7 @@ export const Header = () => {
             <div>
                 {isConnected ? (
                     <Button color="primary" onClick={deactivate} variant="contained">
-                        Disconnect
+                        Disconnect {account.slice(0, 4)}...{account.substring(38, 42)}
                     </Button>
                 ) : (
                     <Button color="primary" onClick={() => activateBrowserWallet()} variant="contained">

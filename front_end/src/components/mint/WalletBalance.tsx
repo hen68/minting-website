@@ -1,7 +1,7 @@
 import { Token } from "../Main"
 import { useEthers, useTokenBalance } from "@usedapp/core"
 import { formatUnits } from "@ethersproject/units"
-import { BalanceMsg } from "../../components/BalanceMsg"
+import { BalanceMsg } from "../BalanceMsg"
 export interface WalletBalanceProps {
     token: Token
 }
