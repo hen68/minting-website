@@ -6,6 +6,8 @@ import { Tab } from '@mui/material'
 import { WalletBalance } from "./WalletBalance"
 import { StakeForm } from "./StakeForm";
 import { makeStyles } from "@material-ui/core"
+import { useTotalSupply } from "../../hooks/useTotalSupply"
+import { useMaxSupply } from "../../hooks/useMaxSupply"
 
 
 
@@ -35,6 +37,8 @@ export const YourWallet = ({ supportedTokens }: YourWalletProps) => {
         setSelectedTokenIndex(parseInt(newValue))
     }
     const classes = useStyles()
+    console.log(useTotalSupply().toNumber())
+    console.log(useMaxSupply().toNumber())
     return (
         <Box>
             <h1 className={classes.header}>I'm Your Wallet</h1>

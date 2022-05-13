@@ -11,7 +11,6 @@ import eth from "../eth.png"
 import dai from "../dai.png"
 import { YourWallet } from "./yourWallet/YourWallet"
 import { makeStyles } from "@material-ui/core"
-import { YourStakingBalance } from "./tokenFarm"
 
 const useStyles = makeStyles((theme) => ({
     title: {
@@ -52,7 +51,6 @@ export const Main = () => {
     return (<>
         <h2 className={classes.title}>Dapp Token App</h2>
         <YourWallet supportedTokens={supportedTokens} />
-        <YourStakingBalance supportedTokens={supportedTokens} />
     </>
     )
 }
