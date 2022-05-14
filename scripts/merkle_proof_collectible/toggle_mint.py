@@ -21,10 +21,6 @@ def toggle_mint():
     # )
     # tx2 = contract.withdraw({"from": account})
     # tx2.wait(1)
-    tx2 = contract.mint(1, {"from": account, "amount": Web3.toWei("0.099", "ether")})
-    tx2.wait(1)
-    print(contract.totalSupply())
-    # print(contract.balanceOf("0xEEf0728e750E7D1414150e2251023E3a87E25264"))
 
 
 def main():

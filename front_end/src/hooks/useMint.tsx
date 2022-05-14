@@ -46,15 +46,15 @@ export const useMint = () => {
     //     }
     // }, [approveAndStakeErc20State, amountToStake, tokenAddress])
 
-    // const [state, setState] = useState(approveAndStakeErc20State)
+    // const [state, setState] = useState(mintState)
 
-    // useEffect(() => {
-    //     if (approveAndStakeErc20State.status === "Success") {
-    //         setState(stakeState)
-    //     } else {
-    //         setState(approveAndStakeErc20State)
-    //     }
-    // }, [approveAndStakeErc20State, stakeState])
+    useEffect(() => {
+        if (mintState.status !== "Success") {
+            // setState(mintState)
+            console.log(mintState)
+        }
+        // console.log(mintState.status)
+    }, [mintState])
     // return { approveAndStake, state }
 
     return { approveAndMint, mintState }
