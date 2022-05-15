@@ -10,6 +10,7 @@ import { useMaxSupply } from "../../hooks/useMaxSupply"
 import { useMaxPublicMint } from "../../hooks/useMaxPublicMint"
 import { usePublicSale } from "../../hooks/usePublicSale"
 import { useTotalPublicMint } from "../../hooks/useTotalPublicMint"
+import { useWhitelistSale } from "../../hooks/useWhitelistSale"
 import { useMint } from "../../hooks/useMint"
 import AddIcon from '@mui/icons-material/Add';
 import Button from '@mui/material/Button';
@@ -17,6 +18,7 @@ import RemoveIcon from '@mui/icons-material/Remove';
 import { Input, CircularProgress, Snackbar } from "@material-ui/core"
 import { useEthers, useTokenBalance, useNotifications } from "@usedapp/core"
 import { Alert } from "@mui/material"
+import { backendLookup } from "../../lookup/components"
 
 
 
@@ -57,7 +59,7 @@ const useStyles = makeStyles((theme) => ({
 }))
 
 export const YourWallet = ({ supportedTokens }: YourWalletProps) => {
-    const { account } = useEthers()
+    const { account, activateBrowserWallet } = useEthers()
     const [selectedTokenIndex, setSelectedTokenIndex] = useState<number>(0)
     const [userMintAmount, setUserMintAmount] = useState<number>(1)
     const { notifications } = useNotifications()
@@ -76,6 +78,9 @@ export const YourWallet = ({ supportedTokens }: YourWalletProps) => {
     const txSignatureError = approveAndMintState.status === "Exception"
     const [mintPrice, setMintPrice] = useState<number>(0.099)
     const publicSaleLive = usePublicSale()
+    const whitelistSaleLive = useWhitelistSale()
+    const totalMinted = useTotalSupply()
+    const maxSupply = useMaxSupply()
     const [showMintSuccess, setShowMintSuccess] = useState(false)
     const [showMintFailure, setShowMintFailure] = useState(false)
     const [showLeftToMint, setShowLeftToMint] = useState(false)
@@ -118,13 +123,20 @@ export const YourWallet = ({ supportedTokens }: YourWalletProps) => {
         setMintPrice(userMintAmount * 0.099)
     }, [userMintAmount])
 
+    const getMerkleProof = () => {
+        backendLookup("POST", "get-proof", (response, status) => {
+            console.log(response)
+        }, { "wallet": account })
+    }
+
+
     return (
         <Box>
-            {/* <h1 className={classes.header}>Mint is live!</h1> */}
+            <h1 className={classes.header}>{publicSaleLive ? "Public mint is live!" : whitelistSaleLive ? "Whitelist mint is live!" : "Mint not live yet."}</h1>
             <Box className={classes.box}>
                 <TabContext value={selectedTokenIndex.toString()}>
 
-                    <p className={classes.tabContent}>{useTotalSupply()} / {useMaxSupply()} minted</p>
+                    <p className={classes.tabContent}>{totalMinted} / {maxSupply} minted</p>
                     <p className={classes.tabContent}>{mintPrice} ETH</p>
                     <Box className={classes.mintBox}>
                         <Button variant="contained" onClick={increase}><AddIcon /></Button>
@@ -138,11 +150,13 @@ export const YourWallet = ({ supportedTokens }: YourWalletProps) => {
                             </Button>
                             :
                             <Button variant="contained" onClick={handleMint} disabled={true}>
-                                Mint soon
+                                {totalMinted === maxSupply ? "Minted out" : "Mint soon"}
                             </Button>
                         }
 
                     </Box>
+
+                    {/* <Button variant="contained" onClick={getMerkleProof}>Get proof</Button> */}
 
                     <Snackbar
                         open={showMintFailure}
