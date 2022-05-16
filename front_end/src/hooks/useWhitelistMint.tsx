@@ -7,7 +7,7 @@ import { Contract } from "@ethersproject/contracts"
 import { useState } from "react"
 
 
-export const useMint = () => {
+export const useWhitelistMint = () => {
     const { chainId } = useEthers()
     const { abi } = MerkleProofCollectible
     const { account } = useEthers()
@@ -16,12 +16,12 @@ export const useMint = () => {
     const merkleProofContract = new Contract(merkleProofAddress, merkleProofInterface)
 
 
-    const { send: mint, state: mintState } = useContractFunction(merkleProofContract, "mint", {
-        transactionName: "Mint NFT"
+    const { send: whitelistMint, state: whitelistMintState } = useContractFunction(merkleProofContract, "whitelistMint", {
+        transactionName: "Whitelist Mint NFT"
     })
 
-    const approveAndMint = (amount: number) => {
-        return mint(amount, { value: utils.parseEther(String(amount * 0.099)) })
+    const approveAndWhitelistMint = (amount: number, merkleProof: Array<String>) => {
+        return whitelistMint(merkleProof, amount, { value: utils.parseEther(String(amount * 0.0799)) })
     }
     // const { send: approveErc20Send, state: approveAndStakeErc20State } =
     //     useContractFunction(erc20Contract, "approve", {
@@ -51,5 +51,5 @@ export const useMint = () => {
 
     // return { approveAndStake, state }
 
-    return { approveAndMint, mintState }
+    return { approveAndWhitelistMint, whitelistMintState }
 }

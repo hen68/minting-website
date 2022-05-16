@@ -15,7 +15,7 @@ export function backendLookup(method: string, endpoint: string, callback: Functi
         console.log(e)
         callback({ "message": "The request was an error" }, 400)
     }
-    console.log(data)
+    // console.log(data)
     xhr.send(JSON.stringify(data))
 
     // axios.post('http://localhost:3600/' + endpoint, data)

@@ -7,8 +7,11 @@ from brownie import MerkleProofCollectible, network, config
 def toggle_mint():
     account = get_account()
     contract = MerkleProofCollectible[-1]
-    tx = contract.togglePublicSale({"from": account})
-    tx.wait(1)
+    # tx = contract.togglePublicSale({"from": account})
+    # tx.wait(1)
+
+    tx2 = contract.toggleWhiteListSale({"from": account})
+    tx2.wait(1)
 
     # tx2 = contract.whitelistMint(
     #     [

@@ -12,6 +12,7 @@ import { usePublicSale } from "../../hooks/usePublicSale"
 import { useTotalPublicMint } from "../../hooks/useTotalPublicMint"
 import { useWhitelistSale } from "../../hooks/useWhitelistSale"
 import { useMint } from "../../hooks/useMint"
+import { useWhitelistMint } from "../../hooks/useWhitelistMint"
 import AddIcon from '@mui/icons-material/Add';
 import Button from '@mui/material/Button';
 import RemoveIcon from '@mui/icons-material/Remove';
@@ -56,40 +57,74 @@ const useStyles = makeStyles((theme) => ({
         paddingBottom: "2rem",
         justifyContent: "center"
     },
+    disconnected: {
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        paddingTop: "6rem",
+        paddingBottom: "6rem"
+    }
 }))
 
 export const YourWallet = ({ supportedTokens }: YourWalletProps) => {
-    const { account, activateBrowserWallet } = useEthers()
+    const { account } = useEthers()
+    const classes = useStyles()
+    const [eligibleForWhitelistMint, setEligibleForWhitelistMint] = useState(false)
+    const [showMintSuccess, setShowMintSuccess] = useState(false)
+    const [showMintFailure, setShowMintFailure] = useState(false)
+    const [showWhitelistMintFailure, setShowWhitelistMintFailure] = useState(false)
+    const [showLeftToMint, setShowLeftToMint] = useState(false)
+    const [showMinToMint, setShowMinToMint] = useState(false)
+    const [isConnected, setIsConnected] = useState(false)
+
     const [selectedTokenIndex, setSelectedTokenIndex] = useState<number>(0)
     const [userMintAmount, setUserMintAmount] = useState<number>(1)
+    const [merkleProof, setMerkleProof] = useState([])
+
     const { notifications } = useNotifications()
-    const handleChange = (event: React.ChangeEvent<{}>, newValue: string) => {
-        setSelectedTokenIndex(parseInt(newValue))
-    }
 
     const { approveAndMint, mintState: approveAndMintState } = useMint()
-
-    const handleMint = (event: React.ChangeEvent<{}>) => {
-        console.log(userMintAmount)
-        return approveAndMint(userMintAmount)
-    }
-
     const isMining = approveAndMintState.status === "Mining"
     const txSignatureError = approveAndMintState.status === "Exception"
-    const [mintPrice, setMintPrice] = useState<number>(0.099)
+
+    const { approveAndWhitelistMint, whitelistMintState: approveAndWhitelistMintState } = useWhitelistMint()
+    const isWhitelistMining = approveAndWhitelistMintState.status === "Mining"
+    const txWhitelistSignatureError = approveAndWhitelistMintState.status === "Exception"
+
+    const publicMintPrice = userMintAmount * 0.099
+    const whitelistMintPrice = userMintAmount * 0.0799
+
     const publicSaleLive = usePublicSale()
     const whitelistSaleLive = useWhitelistSale()
     const totalMinted = useTotalSupply()
     const maxSupply = useMaxSupply()
-    const [showMintSuccess, setShowMintSuccess] = useState(false)
-    const [showMintFailure, setShowMintFailure] = useState(false)
-    const [showLeftToMint, setShowLeftToMint] = useState(false)
-    const [showMinToMint, setShowMinToMint] = useState(false)
-
-
     const maxPublicMint = useMaxPublicMint()
-    const classes = useStyles()
     const leftToMint = maxPublicMint - useTotalPublicMint(account)
+
+
+    const handleMint = (event: React.ChangeEvent<{}>) => {
+        console.log(merkleProof)
+        return approveAndMint(userMintAmount)
+    }
+
+    const handleWhitelistMint = () => {
+        return approveAndWhitelistMint(userMintAmount, merkleProof)
+    }
+
+    const getMerkleProof = (currentAccount: string) => {
+
+        const getProofCallback = (response, status) => {
+            if (response["response"] !== "Wallet not whitelisted.") {
+                setMerkleProof(response["response"])
+            } else {
+                setMerkleProof([])
+            }
+        }
+
+        backendLookup("POST", "get-proof", getProofCallback, { "wallet": currentAccount })
+    }
+
+
     const increase = (event: React.ChangeEvent<{}>) => {
         if (userMintAmount < leftToMint) setUserMintAmount(userMintAmount + 1)
         else setShowLeftToMint(true)
@@ -103,14 +138,23 @@ export const YourWallet = ({ supportedTokens }: YourWalletProps) => {
     const handleCloseSnack = () => {
         setShowMintSuccess(false)
         setShowMintFailure(false)
+        setShowWhitelistMintFailure(false)
         setShowLeftToMint(false)
         setShowMinToMint(false)
     }
+
     useEffect(() => {
         if (notifications.filter(
             (notification) =>
                 notification.type === "transactionSucceed" &&
                 notification.transactionName === "Mint NFT").length > 0) {
+            setShowMintSuccess(true)
+        }
+
+        if (notifications.filter(
+            (notification) =>
+                notification.type === "transactionSucceed" &&
+                notification.transactionName === "Whitelist Mint NFT").length > 0) {
             setShowMintSuccess(true)
         }
     }, [notifications])
@@ -120,14 +164,26 @@ export const YourWallet = ({ supportedTokens }: YourWalletProps) => {
     }, [txSignatureError])
 
     useEffect(() => {
-        setMintPrice(userMintAmount * 0.099)
-    }, [userMintAmount])
+        setShowWhitelistMintFailure(txWhitelistSignatureError)
+    }, [txWhitelistSignatureError])
 
-    const getMerkleProof = () => {
-        backendLookup("POST", "get-proof", (response, status) => {
-            console.log(response)
-        }, { "wallet": account })
-    }
+    useEffect(() => {
+        if (account !== undefined) {
+            setIsConnected(true)
+            if (whitelistSaleLive) {
+                getMerkleProof(account)
+            }
+
+        } else {
+            setIsConnected(false)
+            setMerkleProof([])
+        }
+    }, [account])
+
+    useEffect(() => {
+        if (merkleProof.length !== 0) setEligibleForWhitelistMint(true)
+        else setEligibleForWhitelistMint(false)
+    }, [merkleProof])
 
 
     return (
@@ -135,28 +191,49 @@ export const YourWallet = ({ supportedTokens }: YourWalletProps) => {
             <h1 className={classes.header}>{publicSaleLive ? "Public mint is live!" : whitelistSaleLive ? "Whitelist mint is live!" : "Mint not live yet."}</h1>
             <Box className={classes.box}>
                 <TabContext value={selectedTokenIndex.toString()}>
+                    {isConnected ?
+                        <>
+                            <p className={classes.tabContent}>{totalMinted} / {maxSupply} minted</p>
+                            <p className={classes.tabContent}>{publicSaleLive ? publicMintPrice : whitelistMintPrice} ETH</p>
+                            <Box className={classes.mintBox}>
+                                <Button variant="contained" onClick={increase}><AddIcon /></Button>
+                                <p className={classes.span}>{userMintAmount}</p>
+                                <Button variant="contained" onClick={decrease}><RemoveIcon /></Button>
+                            </Box>
+                            <Box className={classes.mintBox}>
+                                {publicSaleLive ?
+                                    <Box>
+                                        {totalMinted === maxSupply ?
 
-                    <p className={classes.tabContent}>{totalMinted} / {maxSupply} minted</p>
-                    <p className={classes.tabContent}>{mintPrice} ETH</p>
-                    <Box className={classes.mintBox}>
-                        <Button variant="contained" onClick={increase}><AddIcon /></Button>
-                        <p className={classes.span}>{userMintAmount}</p>
-                        <Button variant="contained" onClick={decrease}><RemoveIcon /></Button>
-                    </Box>
-                    <Box className={classes.mintBox}>
-                        {publicSaleLive ?
-                            <Button variant="contained" onClick={handleMint}>
-                                {isMining ? <CircularProgress size={26} /> : "Mint"}
-                            </Button>
-                            :
-                            <Button variant="contained" onClick={handleMint} disabled={true}>
-                                {totalMinted === maxSupply ? "Minted out" : "Mint soon"}
-                            </Button>
-                        }
-
-                    </Box>
-
-                    {/* <Button variant="contained" onClick={getMerkleProof}>Get proof</Button> */}
+                                            <Button variant="contained" onClick={handleMint} disabled={true}>
+                                                Minted out
+                                            </Button>
+                                            :
+                                            <Button variant="contained" onClick={handleMint}>
+                                                {isMining ? <CircularProgress size={26} /> : "Mint"}
+                                            </Button>
+                                        }
+                                    </Box>
+                                    :
+                                    whitelistSaleLive ?
+                                        eligibleForWhitelistMint ?
+                                            <Button variant="contained" onClick={handleWhitelistMint}>
+                                                {isWhitelistMining ? <CircularProgress size={26} /> : "Whitelist Mint"}
+                                            </Button>
+                                            :
+                                            <Button variant="contained" onClick={handleMint} disabled={true}>
+                                                {isMining ? <CircularProgress size={26} /> : "Not Whitelisted"}
+                                            </Button>
+                                        :
+                                        <Button variant="contained" onClick={handleMint} disabled={true}>
+                                            Mint soon
+                                        </Button>
+                                }
+                            </Box>
+                        </>
+                        :
+                        <h2 className={classes.disconnected}>Connect to your wallet</h2>
+                    }
 
                     <Snackbar
                         open={showMintFailure}
@@ -165,6 +242,16 @@ export const YourWallet = ({ supportedTokens }: YourWalletProps) => {
                     >
                         <Alert onClose={handleCloseSnack} severity="error">
                             {approveAndMintState.errorMessage}
+                        </Alert>
+                    </Snackbar>
+
+                    <Snackbar
+                        open={showWhitelistMintFailure}
+                        autoHideDuration={5000}
+                        onClose={handleCloseSnack}
+                    >
+                        <Alert onClose={handleCloseSnack} severity="error">
+                            {approveAndWhitelistMintState.errorMessage}
                         </Alert>
                     </Snackbar>
 
