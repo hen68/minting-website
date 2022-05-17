@@ -1,1 +1,1 @@
-export { YourWallet } from "./MintForm"
+export { MintComponent } from "./MintForm"

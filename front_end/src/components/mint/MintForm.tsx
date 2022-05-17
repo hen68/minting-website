@@ -1,9 +1,6 @@
-import { Token } from "../Main"
 import Box from '@mui/material/Box';
-import React, { useEffect, useState } from "react"
-import { TabContext, TabList, TabPanel } from "@mui/lab"
-import { Tab } from '@mui/material'
-import { WalletBalance } from "./WalletBalance"
+import { useEffect, useState } from "react"
+import { TabContext } from "@mui/lab"
 import { makeStyles } from "@material-ui/core"
 import { useTotalSupply } from "../../hooks/useTotalSupply"
 import { useMaxSupply } from "../../hooks/useMaxSupply"
@@ -16,17 +13,11 @@ import { useWhitelistMint } from "../../hooks/useWhitelistMint"
 import AddIcon from '@mui/icons-material/Add';
 import Button from '@mui/material/Button';
 import RemoveIcon from '@mui/icons-material/Remove';
-import { Input, CircularProgress, Snackbar } from "@material-ui/core"
-import { useEthers, useTokenBalance, useNotifications } from "@usedapp/core"
+import { CircularProgress, Snackbar } from "@material-ui/core"
+import { useEthers, useNotifications } from "@usedapp/core"
 import { Alert } from "@mui/material"
 import { backendLookup } from "../../lookup/components"
 
-
-
-
-interface YourWalletProps {
-    supportedTokens: Array<Token>
-}
 
 const useStyles = makeStyles((theme) => ({
     tabContent: {
@@ -66,7 +57,7 @@ const useStyles = makeStyles((theme) => ({
     }
 }))
 
-export const YourWallet = ({ supportedTokens }: YourWalletProps) => {
+export const MintComponent = () => {
     const { account } = useEthers()
     const classes = useStyles()
     const [eligibleForWhitelistMint, setEligibleForWhitelistMint] = useState(false)
@@ -77,7 +68,12 @@ export const YourWallet = ({ supportedTokens }: YourWalletProps) => {
     const [showMinToMint, setShowMinToMint] = useState(false)
     const [isConnected, setIsConnected] = useState(false)
 
-    const [selectedTokenIndex, setSelectedTokenIndex] = useState<number>(0)
+
+    const publicSaleLive = usePublicSale()
+    const whitelistSaleLive = useWhitelistSale()
+    const maxPublicMint = useMaxPublicMint()
+    const leftToMint = maxPublicMint - useTotalPublicMint(account)
+
     const [userMintAmount, setUserMintAmount] = useState<number>(1)
     const [merkleProof, setMerkleProof] = useState([])
 
@@ -94,16 +90,11 @@ export const YourWallet = ({ supportedTokens }: YourWalletProps) => {
     const publicMintPrice = userMintAmount * 0.099
     const whitelistMintPrice = userMintAmount * 0.0799
 
-    const publicSaleLive = usePublicSale()
-    const whitelistSaleLive = useWhitelistSale()
-    const totalMinted = useTotalSupply()
     const maxSupply = useMaxSupply()
-    const maxPublicMint = useMaxPublicMint()
-    const leftToMint = maxPublicMint - useTotalPublicMint(account)
+    const totalMinted = useTotalSupply()
 
 
-    const handleMint = (event: React.ChangeEvent<{}>) => {
-        console.log(merkleProof)
+    const handleMint = () => {
         return approveAndMint(userMintAmount)
     }
 
@@ -125,12 +116,12 @@ export const YourWallet = ({ supportedTokens }: YourWalletProps) => {
     }
 
 
-    const increase = (event: React.ChangeEvent<{}>) => {
+    const increase = () => {
         if (userMintAmount < leftToMint) setUserMintAmount(userMintAmount + 1)
         else setShowLeftToMint(true)
     }
 
-    const decrease = (event: React.ChangeEvent<{}>) => {
+    const decrease = () => {
         if (userMintAmount > 1) setUserMintAmount(userMintAmount - 1)
         else setShowMinToMint(true)
     }
@@ -170,6 +161,7 @@ export const YourWallet = ({ supportedTokens }: YourWalletProps) => {
     useEffect(() => {
         if (account !== undefined) {
             setIsConnected(true)
+
             if (whitelistSaleLive) {
                 getMerkleProof(account)
             }
@@ -190,7 +182,7 @@ export const YourWallet = ({ supportedTokens }: YourWalletProps) => {
         <Box>
             <h1 className={classes.header}>{publicSaleLive ? "Public mint is live!" : whitelistSaleLive ? "Whitelist mint is live!" : "Mint not live yet."}</h1>
             <Box className={classes.box}>
-                <TabContext value={selectedTokenIndex.toString()}>
+                <TabContext value="">
                     {isConnected ?
                         <>
                             <p className={classes.tabContent}>{totalMinted} / {maxSupply} minted</p>

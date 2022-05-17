@@ -23,33 +23,6 @@ export const useWhitelistMint = () => {
     const approveAndWhitelistMint = (amount: number, merkleProof: Array<String>) => {
         return whitelistMint(merkleProof, amount, { value: utils.parseEther(String(amount * 0.0799)) })
     }
-    // const { send: approveErc20Send, state: approveAndStakeErc20State } =
-    //     useContractFunction(erc20Contract, "approve", {
-    //         transactionName: "Approve ERC20 transfer"
-    //     })
-
-    // const approveAndStake = (amount: string) => {
-    //     setAmountToStake(amount)
-    //     return approveErc20Send(tokenFarmAddress, amount)
-    // }
-    // const { send: stakeSend, state: stakeState } =
-    //     useContractFunction(tokenFarmContract, "stakeTokens", {
-    //         transactionName: "Stake Tokens"
-    //     })
-
-
-    // const [amountToStake, setAmountToStake] = useState("0")
-
-    // useEffect(() => {
-    //     if (approveAndStakeErc20State.status === "Success") {
-    //         stakeSend(amountToStake, tokenAddress)
-    //     }
-    // }, [approveAndStakeErc20State, amountToStake, tokenAddress])
-
-    // const [state, setState] = useState(mintState)
-
-
-    // return { approveAndStake, state }
 
     return { approveAndWhitelistMint, whitelistMintState }
 }
